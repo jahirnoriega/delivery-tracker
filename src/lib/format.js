@@ -39,3 +39,26 @@ export function toISODate(date = new Date()) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
+
+const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** "Mon, Oct 27" / "Lun 27 oct" — for tables and lists. */
+export function formatDayDate(iso, locale) {
+  const date = typeof iso === "string" ? parseISODate(iso) : iso;
+  const weekday = date.toLocaleDateString(intlLocale(locale), { weekday: "short" }).replace(".", "");
+  const day = date
+    .toLocaleDateString(intlLocale(locale), { day: "numeric", month: "short" })
+    .replace(".", "");
+  return locale === "es" ? `${capitalize(weekday)} ${day}` : `${weekday}, ${day}`;
+}
+
+/** "Oct 27" / "27 oct" — short label for chart axes. */
+export function formatShortDate(date, locale) {
+  return date.toLocaleDateString(intlLocale(locale), { day: "numeric", month: "short" }).replace(".", "");
+}
+
+/** "+12%" / "−5%". */
+export function formatPercent(value) {
+  const rounded = Math.round(value);
+  return `${rounded > 0 ? "+" : rounded < 0 ? "−" : ""}${Math.abs(rounded)}%`;
+}

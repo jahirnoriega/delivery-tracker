@@ -133,3 +133,90 @@ export function toCSV(rows) {
   );
   return [head.join(","), ...lines].join("\n");
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Monday of the week that contains `date` (weeks start on Monday). */
+export function startOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+
+const inRange = (row, from, to) => {
+  const d = parseISODate(row.date);
+  return d >= from && d < to;
+};
+
+/** Percent change from `previous` to `current`, or null when there's nothing to compare. */
+export function percentChange(current, previous) {
+  if (!previous) return null;
+  return ((current - previous) / Math.abs(previous)) * 100;
+}
+
+/**
+ * Everything the Earnings dashboard needs, computed from all shifts
+ * (it ignores the period filter so comparisons always have history).
+ */
+export function earningsSummary(shifts, settings, today = new Date()) {
+  const rows = shifts.map((s) => enrichShift(s, settings));
+  const todayStart = new Date(today);
+  todayStart.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(todayStart.getTime() + DAY_MS);
+
+  // This week so far vs the same days of last week (weeks start on Monday).
+  const weekStart = startOfWeek(todayStart);
+  const prevWeekStart = new Date(weekStart.getTime() - 7 * DAY_MS);
+  const prevWeekCutoff = new Date(tomorrow.getTime() - 7 * DAY_MS);
+  const thisWeek = totals(rows.filter((r) => inRange(r, weekStart, tomorrow)));
+  const lastWeek = totals(rows.filter((r) => inRange(r, prevWeekStart, prevWeekCutoff)));
+
+  // This month so far vs the same days of last month, so the comparison is fair.
+  const monthStart = new Date(todayStart.getFullYear(), todayStart.getMonth(), 1);
+  const prevMonthStart = new Date(todayStart.getFullYear(), todayStart.getMonth() - 1, 1);
+  const sameDayLastMonth = new Date(
+    prevMonthStart.getFullYear(),
+    prevMonthStart.getMonth(),
+    todayStart.getDate() + 1,
+  );
+  const prevMonthCutoff = sameDayLastMonth < monthStart ? sameDayLastMonth : monthStart;
+  const thisMonth = totals(rows.filter((r) => inRange(r, monthStart, tomorrow)));
+  const lastMonth = totals(rows.filter((r) => inRange(r, prevMonthStart, prevMonthCutoff)));
+
+  // Last 8 weeks, oldest first.
+  const weeks = Array.from({ length: 8 }, (_, i) => {
+    const from = new Date(weekStart.getTime() - (7 - i) * 7 * DAY_MS);
+    const to = new Date(from.getTime() + 7 * DAY_MS);
+    return { from, ...totals(rows.filter((r) => inRange(r, from, to))) };
+  });
+
+  // Last 14 days, oldest first.
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const from = new Date(todayStart.getTime() - (13 - i) * DAY_MS);
+    const to = new Date(from.getTime() + DAY_MS);
+    return { date: from, ...totals(rows.filter((r) => inRange(r, from, to))) };
+  });
+
+  // Best single day ever, by net.
+  const byDate = new Map();
+  for (const r of rows) byDate.set(r.date, (byDate.get(r.date) ?? 0) + r.net);
+  let bestDay = null;
+  for (const [date, net] of byDate) if (!bestDay || net > bestDay.net) bestDay = { date, net };
+
+  const all = totals(rows);
+  const activeDays = byDate.size;
+
+  return {
+    thisWeek,
+    lastWeek,
+    thisMonth,
+    lastMonth,
+    weeks,
+    days,
+    bestDay,
+    activeDays,
+    avgPerShift: all.shifts ? all.net / all.shifts : 0,
+    avgPerDay: activeDays ? all.net / activeDays : 0,
+  };
+}

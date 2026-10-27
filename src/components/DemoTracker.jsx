@@ -14,6 +14,9 @@ export default function DemoTracker() {
       shifts={shifts}
       settings={settings}
       onAdd={async (shift) => setShifts((prev) => [...prev, { ...shift, id: crypto.randomUUID() }])}
+      onUpdate={async (id, shift) =>
+        setShifts((prev) => prev.map((s) => (s.id === id ? { ...shift, id } : s)))
+      }
       onDelete={(id) => setShifts((prev) => prev.filter((s) => s.id !== id))}
       onSettings={setSettings}
     />

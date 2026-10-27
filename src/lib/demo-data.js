@@ -3,6 +3,7 @@ import { toISODate } from "./format";
 // Made-up sample shifts (not real earnings), spread over the last three weeks.
 // [days ago, app, start, end, earnings, tips, km, orders]
 const SAMPLE = [
+  [0, "uber_eats", "19:00", "21:00", 290, 75, 33, 6],
   [1, "uber_eats", "19:00", "21:30", 310, 85, 38, 7],
   [2, "amazon_flex", "16:00", "19:00", 540, 0, 62, 1],
   [3, "uber_eats", "18:30", "21:00", 265, 60, 34, 6],

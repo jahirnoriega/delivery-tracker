@@ -41,6 +41,7 @@ export default function CloudTracker({ uid }) {
       shifts={shifts}
       settings={settings}
       onAdd={(shift) => push(ref(db, `${base}/shifts`), shift)}
+      onUpdate={(id, shift) => set(ref(db, `${base}/shifts/${id}`), shift)}
       onDelete={(id) => remove(ref(db, `${base}/shifts/${id}`))}
       onSettings={updateSettings}
     />

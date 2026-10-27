@@ -9,6 +9,8 @@ A small app to log delivery shifts (Uber Eats, Amazon Flex, DiDi Food…) and co
 - **Log a shift:** date, app, start and end time, earnings, tips, kilometers, orders and notes.
 - **See what's left after gas.** Gas cost is calculated from your car's km per liter and the gas price, and both values are editable.
 - **Compare:** net per hour by app, net per hour by weekday, and a "who pays more" summary.
+- **Earnings dashboard:** net this week and this month compared with the same days of the previous period, net per week for the last 8 weeks, the last 14 days, your best day, and a breakdown from gross to net.
+- **Edit or delete any shift** if you logged something wrong.
 - **Filter and export.** View all time or the last 30 or 7 days, and export to CSV.
 - **Private by design.** You sign in with Google, and the Firebase rules only let the owner's account read or write data.
 - **Demo mode.** It's the same UI running on sample data that never leaves the browser.
@@ -51,7 +53,11 @@ Data is stored per user at `tracker/{uid}/shifts` and `tracker/{uid}/settings`.
 src/
 ├── App.jsx              # Landing ↔ demo ↔ signed-in tracker
 ├── components/
-│   ├── TrackerView.jsx  # The whole tracker UI (data comes from props)
+│   ├── TrackerView.jsx  # Tracker layout: tabs, filters, form and history
+│   ├── OverviewTab.jsx  # KPIs and comparisons by app / weekday
+│   ├── EarningsTab.jsx  # Earnings dashboard
+│   ├── ShiftForm.jsx    # Add / edit a shift
+│   ├── HistoryTable.jsx # Shift list with edit and delete
 │   ├── CloudTracker.jsx # TrackerView + Firebase
 │   ├── DemoTracker.jsx  # TrackerView + sample data
 │   ├── Header.jsx
