@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "database": {
+      ".read": true,
+      ".write": false
+    },
+    "tracker": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && auth.token.email === 'noriegajahir@gmail.com' && auth.token.email_verified === true",
+        ".write": "auth != null && auth.uid === $uid && auth.token.email === 'noriegajahir@gmail.com' && auth.token.email_verified === true"
+      }
+    }
+  }
+}

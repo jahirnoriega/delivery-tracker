@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "@fontsource-variable/rubik";
+
+/* Dark mode is toggled with a `.dark` class on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Design tokens. Palette comes from the logo:
+  mint #9dd4b4 · blue #8eacd1 · lilac #ceb0d3 · ink #242424
+*/
+:root {
+  --bg: #f5f5f4;
+  --surface: #ffffff;
+  --surface-2: #ecebe9;
+  --ink: #242424;
+  --muted: #6e6e74;
+  --line: #e0dfdb;
+  --brand: #3e6aa8; /* logo blue, darkened for contrast on light backgrounds */
+  --brand-ink: #ffffff;
+  --mint: #9dd4b4;
+  --sky: #8eacd1;
+  --lilac: #ceb0d3;
+  --good: #208c5c;
+  --bad: #c83e34;
+  --glass: rgb(255 255 255 / 0.6);
+  --glass-edge: rgb(255 255 255 / 0.8);
+  --glass-shadow: rgb(20 20 30 / 0.12);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #171717;
+  --surface: #1e1e1e;
+  --surface-2: #282828;
+  --ink: #ededed;
+  --muted: #a1a1a1;
+  --line: #2c2c2c;
+  --brand: #8eacd1; /* logo blue */
+  --brand-ink: #171717;
+  --good: #9dd4b4;
+  --bad: #f07869;
+  --glass: rgb(255 255 255 / 0.05);
+  --glass-edge: rgb(255 255 255 / 0.09);
+  --glass-shadow: rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-mint: var(--mint);
+  --color-sky: var(--sky);
+  --color-lilac: var(--lilac);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+
+  --font-sans: "Rubik Variable", Rubik, ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--sky) 40%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+/* Translucent "liquid glass" surface: used for the nav, buttons and hover states. */
+@utility glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    0 10px 30px -14px var(--glass-shadow);
+}
+
+/* Main page column. */
+@utility container-wide {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 64rem;
+  padding-inline: 1.25rem;
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+}
+
+@layer components {
+  .card {
+    border-radius: var(--radius-3xl);
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: --spacing(2);
+    border-radius: 9999px;
+    padding: --spacing(2.5) --spacing(4);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    transition:
+      opacity 0.15s,
+      background-color 0.15s,
+      transform 0.15s;
+  }
+  .btn-primary {
+    background: var(--brand);
+    color: var(--brand-ink);
+  }
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+  .btn-ghost {
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .btn-ghost:hover {
+    background: var(--surface-2);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .field {
+    width: 100%;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--line);
+    background: var(--bg);
+    padding: --spacing(2) --spacing(3);
+    font-size: var(--text-sm);
+    color: var(--ink);
+    outline: none;
+  }
+  .field:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 20%, transparent);
+  }
+
+  /* Underlined inline link inside running text. */
+  .inline-link {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    transition: text-decoration-color 0.15s;
+  }
+  .inline-link:hover {
+    text-decoration-color: var(--brand);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
