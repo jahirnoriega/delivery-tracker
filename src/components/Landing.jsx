@@ -7,7 +7,7 @@ export default function Landing({ onSignIn, onDemo, notice, busy }) {
   const { t } = useLocale();
 
   return (
-    <main className="container-wide flex flex-col items-center pt-20 text-center sm:pt-28">
+    <main className="container-wide flex flex-col items-center pt-16 pb-[max(2.5rem,env(safe-area-inset-bottom))] text-center sm:pt-28">
       <img src="/favicon.svg" alt="" className="size-16 rounded-2xl shadow-lg" />
       <h1 className="mt-8 text-4xl font-bold tracking-tight text-balance sm:text-5xl">{t.appName}</h1>
       <p className="mt-4 max-w-lg text-lg leading-relaxed text-muted">{t.tagline}</p>

@@ -1,6 +1,12 @@
 import { useMemo } from "react";
 import { useLocale } from "@/i18n/context";
-import { formatDayDate, formatMoney as money, formatShortDate, toISODate } from "@/lib/format";
+import {
+  formatDayDate,
+  formatMoney as money,
+  formatMoneyCompact,
+  formatShortDate,
+  toISODate,
+} from "@/lib/format";
 import { earningsSummary, percentChange } from "@/lib/tracker";
 import { Change, Stat } from "./ui";
 
@@ -33,7 +39,7 @@ function WeeklyChart({ weeks }) {
           ]}
         />
       </div>
-      <div className="mt-5 flex h-52 items-end gap-2 sm:gap-3">
+      <div className="mt-5 flex h-52 items-end gap-1.5 sm:gap-3">
         {weeks.map((week, i) => {
           const current = i === weeks.length - 1;
           const netHeight = (Math.max(0, week.net) / max) * 100;
@@ -43,8 +49,16 @@ function WeeklyChart({ weeks }) {
               key={week.from.toISOString()}
               className="flex h-full flex-1 flex-col items-center justify-end"
             >
-              <span className="mb-1 text-[10px] text-muted tabular-nums">
-                {week.shifts ? money(week.net, locale) : ""}
+              {/* Full amounts collide on narrow screens, so phones get a compact label. */}
+              <span className="mb-1 text-[10px] whitespace-nowrap text-muted tabular-nums">
+                {week.shifts ? (
+                  <>
+                    <span className="sm:hidden">{formatMoneyCompact(week.net)}</span>
+                    <span className="hidden sm:inline">{money(week.net, locale)}</span>
+                  </>
+                ) : (
+                  ""
+                )}
               </span>
               <div
                 className="flex w-full flex-col justify-end overflow-hidden rounded-md"
@@ -61,7 +75,7 @@ function WeeklyChart({ weeks }) {
                 )}
               </div>
               <span
-                className={`mt-1.5 text-[10px] sm:text-xs ${current ? "font-medium text-ink" : "text-muted"}`}
+                className={`mt-1.5 text-[10px] whitespace-nowrap sm:text-xs ${current ? "font-medium text-ink" : "text-muted"}`}
               >
                 {formatShortDate(week.from, locale)}
               </span>

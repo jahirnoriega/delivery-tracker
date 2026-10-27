@@ -52,7 +52,7 @@ export default function App() {
     return (
       <>
         <Header action={sessionButton(t.header.exitDemo, () => setDemo(false))} />
-        <main className="container-wide pt-10 pb-24">
+        <main className="container-wide pt-8 pb-[max(6rem,calc(env(safe-area-inset-bottom)+4rem))] sm:pt-10">
           <DemoTracker />
         </main>
       </>
@@ -67,7 +67,7 @@ export default function App() {
     return (
       <>
         <Header action={sessionButton(t.header.signOut, signOutUser)} />
-        <main className="container-wide pt-10 pb-24">
+        <main className="container-wide pt-8 pb-[max(6rem,calc(env(safe-area-inset-bottom)+4rem))] sm:pt-10">
           <CloudTracker uid={user.uid} />
         </main>
       </>

@@ -83,9 +83,9 @@ export default function ShiftForm({ initial, editing = false, onSubmit, onCancel
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className={`card grid gap-4 p-5 sm:grid-cols-4 ${editing ? "ring-2 ring-brand/40" : ""}`}
+      className={`card grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:gap-4 sm:p-5 ${editing ? "ring-2 ring-brand/40" : ""}`}
     >
-      <h2 className="font-semibold sm:col-span-4">{editing ? t.editShift : t.newShift}</h2>
+      <h2 className="col-span-2 font-semibold sm:col-span-4">{editing ? t.editShift : t.newShift}</h2>
       <Field label={t.date}>
         <input type="date" required className="field" value={draft.date} onChange={set("date")} />
       </Field>
@@ -108,7 +108,7 @@ export default function ShiftForm({ initial, editing = false, onSubmit, onCancel
       <Field label={`${t.tips} (MXN)`}>{numberInput("tips")}</Field>
       <Field label={t.km}>{numberInput("km", { step: "0.1" })}</Field>
       <Field label={t.trips}>{numberInput("trips", { step: "1" })}</Field>
-      <Field label={t.notes} className="sm:col-span-4">
+      <Field label={t.notes} className="col-span-2 sm:col-span-4">
         <input
           className="field"
           value={draft.notes}
@@ -116,14 +116,14 @@ export default function ShiftForm({ initial, editing = false, onSubmit, onCancel
           placeholder={t.notesPlaceholder}
         />
       </Field>
-      <div className="flex items-center gap-2 sm:col-span-4">
-        <button type="submit" className="btn btn-primary" disabled={busy}>
+      <div className="col-span-2 flex flex-wrap items-center gap-2 sm:col-span-4">
+        <button type="submit" className="btn btn-primary flex-1 sm:flex-none" disabled={busy}>
           {editing ? t.saveChanges : t.save}
         </button>
-        <button type="button" className="btn btn-ghost" onClick={onCancel}>
+        <button type="button" className="btn btn-ghost flex-1 sm:flex-none" onClick={onCancel}>
           {t.cancel}
         </button>
-        {error && <p className="text-sm text-bad">{error}</p>}
+        {error && <p className="w-full text-sm text-bad sm:w-auto">{error}</p>}
       </div>
     </form>
   );

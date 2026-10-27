@@ -34,6 +34,14 @@ export function formatMoneyPrecise(value, locale) {
   }).format(value || 0);
 }
 
+/** Short chart label that fits narrow bars: "$596", "$1.9k". */
+export function formatMoneyCompact(value) {
+  const n = Math.round(value || 0);
+  const sign = n < 0 ? "−" : "";
+  const abs = Math.abs(n);
+  return abs >= 1000 ? `${sign}$${(abs / 1000).toFixed(1).replace(/\.0$/, "")}k` : `${sign}$${abs}`;
+}
+
 /** Local date as "YYYY-MM-DD". */
 export function toISODate(date = new Date()) {
   const pad = (n) => String(n).padStart(2, "0");

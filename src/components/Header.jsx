@@ -11,7 +11,7 @@ export default function Header({ action }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-40 pt-4">
+    <header className="sticky top-0 z-40 pt-[max(1rem,env(safe-area-inset-top))]">
       <div className="container-wide flex items-center justify-between">
         <span className="grid size-11 place-items-center rounded-full glass">
           <img src="/favicon.svg" alt="" className="size-6 rounded-md" />

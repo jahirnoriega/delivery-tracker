@@ -7,19 +7,30 @@
       name="description"
       content="Log delivery shifts and compare apps by what you really keep after gas."
     />
-    <meta name="theme-color" content="#171717" />
+    <meta name="theme-color" content="#f5f5f4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)" />
     <meta name="robots" content="noindex" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Delivery Tracker</title>
     <script>
-      // Apply the saved theme before the first paint (dark by default).
-      try {
-        if (localStorage.getItem("theme") !== "light") document.documentElement.classList.add("dark");
-      } catch {
-        document.documentElement.classList.add("dark");
-      }
+      // Apply the theme before the first paint: follow the device unless the visitor
+      // picked the other one with the toggle, and keep following it if it changes.
+      (function () {
+        var media = matchMedia("(prefers-color-scheme: dark)");
+        function apply() {
+          var saved = null;
+          try {
+            saved = localStorage.getItem("theme-override");
+          } catch {
+            // Storage unavailable: just follow the device.
+          }
+          document.documentElement.classList.toggle("dark", saved ? saved === "dark" : media.matches);
+        }
+        apply();
+        media.addEventListener("change", apply);
+      })();
     </script>
   </head>
   <body>

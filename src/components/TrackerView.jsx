@@ -16,7 +16,7 @@ const RANGES = ["all", "d30", "d7"];
 function Segmented({ options, value, onChange, labels, ariaLabel }) {
   return (
     <div
-      className="inline-flex rounded-xl border border-line bg-surface p-1 text-sm"
+      className="flex w-full rounded-xl border border-line bg-surface p-1 text-sm sm:inline-flex sm:w-auto"
       role="tablist"
       aria-label={ariaLabel}
     >
@@ -27,7 +27,7 @@ function Segmented({ options, value, onChange, labels, ariaLabel }) {
           role="tab"
           aria-selected={value === option}
           onClick={() => onChange(option)}
-          className={`rounded-lg px-3 py-1.5 transition ${
+          className={`flex-1 rounded-lg px-3 py-1.5 whitespace-nowrap transition sm:flex-none ${
             value === option ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink"
           }`}
         >
@@ -98,10 +98,10 @@ export default function TrackerView({
       </div>
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <Segmented options={TABS} value={tab} onChange={setTab} labels={t.tabs} ariaLabel={t.view} />
         <Segmented options={RANGES} value={range} onChange={setRange} labels={t.ranges} ariaLabel={t.range} />
-        <div className="ml-auto flex gap-2">
+        <div className="flex gap-2 sm:ml-auto">
           <button
             type="button"
             onClick={() => setSettingsOpen((open) => !open)}
@@ -116,7 +116,7 @@ export default function TrackerView({
           <button
             type="button"
             onClick={() => setForm(form?.mode === "add" ? null : { mode: "add" })}
-            className="btn btn-primary"
+            className="btn btn-primary flex-1 sm:flex-none"
           >
             <HiOutlinePlus /> {t.newShift}
           </button>

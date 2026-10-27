@@ -66,9 +66,12 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
+    min-height: 100dvh;
     background: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
@@ -89,6 +92,11 @@
   button {
     cursor: pointer;
   }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 /* Translucent "liquid glass" surface: used for the nav, buttons and hover states. */
@@ -107,9 +115,10 @@
   margin-inline: auto;
   width: 100%;
   max-width: 64rem;
-  padding-inline: 1.25rem;
+  /* Keep clear of the notch / rounded corners in landscape (viewport-fit=cover). */
+  padding-inline: max(1.25rem, env(safe-area-inset-left)) max(1.25rem, env(safe-area-inset-right));
   @media (width >= 40rem) {
-    padding-inline: 2rem;
+    padding-inline: max(2rem, env(safe-area-inset-left)) max(2rem, env(safe-area-inset-right));
   }
 }
 
@@ -158,10 +167,26 @@
     border-radius: var(--radius-xl);
     border: 1px solid var(--line);
     background: var(--bg);
+    min-width: 0;
+    min-height: --spacing(10);
     padding: --spacing(2) --spacing(3);
-    font-size: var(--text-sm);
+    /* 16px on phones so iOS Safari doesn't zoom in when a field gets focus. */
+    font-size: var(--text-base);
     color: var(--ink);
     outline: none;
+    @media (width >= 40rem) {
+      font-size: var(--text-sm);
+    }
+  }
+  /* iOS renders date/time inputs with an intrinsic width and centered text; make them behave like the rest. */
+  .field[type="date"],
+  .field[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+  }
+  .field::-webkit-date-and-time-value {
+    text-align: left;
   }
   .field:focus {
     border-color: var(--brand);
