@@ -1,4 +1,4 @@
-import { parseISODate } from "./format";
+import { parseISODate, toISODate } from "./format";
 
 // Pure helpers for the delivery tracker (no React), so they are easy to test.
 
@@ -65,13 +65,12 @@ function totals(rows) {
   return t;
 }
 
+/** `range` is "all" or the Monday of a week as "YYYY-MM-DD". */
 export function filterRange(rows, range) {
   if (range === "all") return rows;
-  const days = range === "d7" ? 7 : 30;
-  const from = new Date();
-  from.setHours(0, 0, 0, 0);
-  from.setDate(from.getDate() - (days - 1));
-  return rows.filter((r) => parseISODate(r.date) >= from);
+  const from = parseISODate(range);
+  const to = addDays(from, 7);
+  return rows.filter((r) => inRange(r, from, to));
 }
 
 export function summarize(shifts, settings) {
@@ -86,8 +85,9 @@ export function summarize(shifts, settings) {
     ...totals(rows.filter((r) => (r.app || "other") === a.id)),
   })).filter((a) => a.shifts > 0);
 
+  // Monday first, to match weeks that start on Monday.
   const byDay = Array.from({ length: 7 }, (_, d) =>
-    totals(rows.filter((r) => parseISODate(r.date).getDay() === d)),
+    totals(rows.filter((r) => weekdayIndex(parseISODate(r.date)) === d)),
   );
 
   const best = [...byApp].sort((a, b) => b.perHour - a.perHour)[0];
@@ -136,12 +136,37 @@ export function toCSV(rows) {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** 0 = Monday … 6 = Sunday. */
+const weekdayIndex = (date) => (date.getDay() + 6) % 7;
+
+/** Calendar-day offset (safe across DST changes, unlike adding milliseconds). */
+export function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
 /** Monday of the week that contains `date` (weeks start on Monday). */
 export function startOfWeek(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  d.setDate(d.getDate() - weekdayIndex(d));
   return d;
+}
+
+/** "YYYY-MM-DD" of the Monday `offset` weeks from the current week (0 = this week, -1 = last week). */
+export const weekKey = (offset = 0, today = new Date()) => toISODate(addDays(startOfWeek(today), offset * 7));
+
+/** The week before the given week key. */
+export const previousWeekKey = (key) => toISODate(addDays(parseISODate(key), -7));
+
+/** Every week from the current one back to the week of the oldest shift, newest first. */
+export function weekKeys(shifts, today = new Date()) {
+  const current = startOfWeek(today);
+  const oldest = shifts.reduce((min, s) => (s.date < min ? s.date : min), toISODate(current));
+  const keys = [];
+  for (let d = current; d >= startOfWeek(parseISODate(oldest)); d = addDays(d, -7)) keys.push(toISODate(d));
+  return keys;
 }
 
 const inRange = (row, from, to) => {
@@ -186,9 +211,9 @@ export function earningsSummary(shifts, settings, today = new Date()) {
 
   // Last 8 weeks, oldest first.
   const weeks = Array.from({ length: 8 }, (_, i) => {
-    const from = new Date(weekStart.getTime() - (7 - i) * 7 * DAY_MS);
-    const to = new Date(from.getTime() + 7 * DAY_MS);
-    return { from, ...totals(rows.filter((r) => inRange(r, from, to))) };
+    const from = addDays(weekStart, -(7 - i) * 7);
+    const to = addDays(from, 7);
+    return { from, key: toISODate(from), ...totals(rows.filter((r) => inRange(r, from, to))) };
   });
 
   // Last 14 days, oldest first.

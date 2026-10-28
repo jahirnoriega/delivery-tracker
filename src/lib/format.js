@@ -65,6 +65,14 @@ export function formatShortDate(date, locale) {
   return date.toLocaleDateString(intlLocale(locale), { day: "numeric", month: "short" }).replace(".", "");
 }
 
+/** "Oct 26 – Nov 1" / "26 oct – 1 nov": the Monday-to-Sunday span of a week. */
+export function formatWeekRange(monday, locale) {
+  const from = typeof monday === "string" ? parseISODate(monday) : monday;
+  const to = new Date(from);
+  to.setDate(to.getDate() + 6);
+  return `${formatShortDate(from, locale)} – ${formatShortDate(to, locale)}`;
+}
+
 /** "+12%" / "−5%". */
 export function formatPercent(value) {
   const rounded = Math.round(value);

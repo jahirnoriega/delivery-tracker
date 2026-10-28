@@ -5,6 +5,7 @@ import {
   formatMoney as money,
   formatMoneyCompact,
   formatShortDate,
+  formatWeekRange,
   toISODate,
 } from "@/lib/format";
 import { earningsSummary, percentChange } from "@/lib/tracker";
@@ -23,10 +24,36 @@ function Legend({ items }) {
   );
 }
 
-/** Net per week for the last 8 weeks, with the gas cost stacked on top (bar height = gross). */
-function WeeklyChart({ weeks }) {
+/** Sum of the money columns for a list of enriched rows. */
+const sumRows = (rows) =>
+  rows.reduce(
+    (a, r) => ({
+      gross: a.gross + r.gross,
+      gas: a.gas + r.gas,
+      net: a.net + r.net,
+      hours: a.hours + r.hours,
+      shifts: a.shifts + 1,
+    }),
+    { gross: 0, gas: 0, net: 0, hours: 0, shifts: 0 },
+  );
+
+/**
+ * Net per week for the last 8 weeks, with the gas cost stacked on top (bar height = gross).
+ * Tapping a bar selects that week for the whole tracker; the selected week's amounts show below.
+ */
+function WeeklyChart({ weeks, rows, range, onRange }) {
   const { t, locale } = useLocale();
   const max = Math.max(1, ...weeks.map((w) => w.gross));
+  const currentKey = weeks[weeks.length - 1].key;
+  const selectedKey = range === "all" ? currentKey : range;
+  // A week older than the chart still gets its amounts, from the filtered rows.
+  const selected = weeks.find((w) => w.key === selectedKey) ?? sumRows(rows);
+
+  const amounts = [
+    { label: t.gross, value: money(selected.gross, locale) },
+    { label: t.gas, value: `−${money(selected.gas, locale)}`, className: "text-bad" },
+    { label: t.netShort, value: money(selected.net, locale), className: "text-brand" },
+  ];
 
   return (
     <section className="card p-5">
@@ -39,15 +66,24 @@ function WeeklyChart({ weeks }) {
           ]}
         />
       </div>
+      <p className="mt-1 text-xs text-muted">{t.earningsTab.tapWeek}</p>
       <div className="mt-5 flex h-52 items-end gap-1.5 sm:gap-3">
         {weeks.map((week, i) => {
-          const current = i === weeks.length - 1;
+          const active = week.key === selectedKey;
+          // Phones only fit the day number; the month shows on the first bar and when it changes.
+          const newMonth = i === 0 || week.from.getMonth() !== weeks[i - 1].from.getMonth();
           const netHeight = (Math.max(0, week.net) / max) * 100;
           const gasHeight = (week.gas / max) * 100;
           return (
-            <div
-              key={week.from.toISOString()}
-              className="flex h-full flex-1 flex-col items-center justify-end"
+            <button
+              key={week.key}
+              type="button"
+              onClick={() => onRange(week.key)}
+              aria-pressed={active}
+              aria-label={`${t.weekOf} ${formatWeekRange(week.from, locale)}`}
+              className={`group flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-lg transition ${
+                active ? "" : "opacity-60 hover:opacity-100"
+              }`}
             >
               {/* Full amounts collide on narrow screens, so phones get a compact label. */}
               <span className="mb-1 text-[10px] whitespace-nowrap text-muted tabular-nums">
@@ -61,27 +97,46 @@ function WeeklyChart({ weeks }) {
                 )}
               </span>
               <div
-                className="flex w-full flex-col justify-end overflow-hidden rounded-md"
+                className={`flex w-full flex-col justify-end overflow-hidden rounded-md ${
+                  active ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""
+                }`}
                 style={{ height: `${Math.max(week.shifts ? 4 : 2, netHeight + gasHeight)}%` }}
-                title={`${formatShortDate(week.from, locale)} · ${t.net} ${money(week.net, locale)} · ${t.gas} ${money(week.gas, locale)}`}
               >
                 {week.shifts ? (
                   <>
                     <div className="bg-bad/50" style={{ flexGrow: gasHeight }} />
-                    <div className={current ? "bg-brand" : "bg-brand/70"} style={{ flexGrow: netHeight }} />
+                    <div className="bg-brand" style={{ flexGrow: netHeight }} />
                   </>
                 ) : (
                   <div className="h-full bg-surface-2" />
                 )}
               </div>
               <span
-                className={`mt-1.5 text-[10px] whitespace-nowrap sm:text-xs ${current ? "font-medium text-ink" : "text-muted"}`}
+                className={`mt-1.5 text-[10px] whitespace-nowrap sm:text-xs ${active ? "font-medium text-ink" : "text-muted"}`}
               >
-                {formatShortDate(week.from, locale)}
+                <span className="sm:hidden">
+                  {newMonth ? formatShortDate(week.from, locale) : week.from.getDate()}
+                </span>
+                <span className="hidden sm:inline">{formatShortDate(week.from, locale)}</span>
               </span>
-            </div>
+            </button>
           );
         })}
+      </div>
+
+      <div className="mt-5 rounded-2xl bg-surface-2/60 p-4">
+        <p className="text-xs text-muted">
+          {t.weekOf} {formatWeekRange(selectedKey, locale)} · {selected.shifts} {t.shifts} ·{" "}
+          {selected.hours.toFixed(1)} h
+        </p>
+        <dl className="mt-2 grid grid-cols-3 gap-2">
+          {amounts.map(({ label, value, className = "" }) => (
+            <div key={label} className="min-w-0">
+              <dt className="truncate text-xs text-muted">{label}</dt>
+              <dd className={`text-base font-semibold tabular-nums sm:text-lg ${className}`}>{value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );
@@ -177,13 +232,14 @@ function Breakdown({ rows }) {
 }
 
 /** "Earnings" dashboard: week and month comparisons, trends and where the money goes. */
-export default function EarningsTab({ shifts, rows, settings }) {
+export default function EarningsTab({ shifts, rows, settings, range, onRange }) {
   const { t, locale } = useLocale();
   const e = t.earningsTab;
   const summary = useMemo(() => earningsSummary(shifts, settings), [shifts, settings]);
 
   return (
     <>
+      <p className="-mb-3 text-xs text-muted sm:hidden">{e.compareNote}</p>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label={e.thisWeek} value={money(summary.thisWeek.net, locale)} accent>
           <Change
@@ -209,7 +265,7 @@ export default function EarningsTab({ shifts, rows, settings }) {
         />
       </div>
 
-      <WeeklyChart weeks={summary.weeks} />
+      <WeeklyChart weeks={summary.weeks} rows={rows} range={range} onRange={onRange} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <DailyChart days={summary.days} />
